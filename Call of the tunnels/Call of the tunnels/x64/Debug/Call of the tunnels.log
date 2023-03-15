@@ -1,2 +1,12 @@
 ﻿  Call of the tunnels.cpp
+C:\Users\kubas\Documents\Jakub\Studia\semestr 3\Projekt c++\JakubSzklarzIndywidualnyProjekt\Call of the tunnels\Call of the tunnels\Call of the tunnels.cpp(45,67): warning C4244: 'argument': conversion from 'int' to 'T', possible loss of data
+          with
+          [
+              T=float
+          ]
+C:\Users\kubas\Documents\Jakub\Studia\semestr 3\Projekt c++\JakubSzklarzIndywidualnyProjekt\Call of the tunnels\Call of the tunnels\Call of the tunnels.cpp(50,64): warning C4244: 'argument': conversion from 'int' to 'T', possible loss of data
+          with
+          [
+              T=float
+          ]
   Call of the tunnels.vcxproj -> C:\Users\kubas\Documents\Jakub\Studia\semestr 3\Projekt c++\JakubSzklarzIndywidualnyProjekt\Call of the tunnels\x64\Debug\Call of the tunnels.exe
