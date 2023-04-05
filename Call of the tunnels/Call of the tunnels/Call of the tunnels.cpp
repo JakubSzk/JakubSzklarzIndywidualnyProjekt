@@ -2,6 +2,19 @@
 #include <iostream>
 #include <vector>
 #include <string>
+sf::Texture polebeta;
+class Pole
+{
+public:
+    sf::Texture* point = &polebeta;
+    int x = 0;
+    int y = 0;
+    sf::Sprite pole;
+    Pole(int b, int c, sf::Texture* a) : point(a), x(b), y(c) { pole.setTexture(*point); pole.setPosition(sf::Vector2f(x, y)); }
+    Pole(int b, int c) : x(b), y(c) { pole.setTexture(*point); pole.setPosition(sf::Vector2f(x, y)); }
+private:
+    //empty for now
+};
 
 int main()
 {
@@ -14,7 +27,7 @@ int main()
     
     /////////////////////////////////////////////////////////////////////////////
     //pobiera z pliku
-
+    polebeta.loadFromFile("resources/betapole.png");
     /////////////////////////////////////////////////////////////////////////////
     sf::RenderWindow window(sf::VideoMode(1900, 1000), "Call Of The Tunnels"); //tworzy okno
     window.setFramerateLimit(30); //limit klatek (bez tego komputer plonie)
@@ -22,9 +35,11 @@ int main()
     std::vector<sf::RectangleShape> beta_obj;
     std::vector<sf::Text> texts; //vectory zawierajace wczytywane obiekty
     std::vector<sf::Sprite> obj;
+    std::vector<Pole> pola;
 
     int state = 0;
     bool change_status = true; //zmienne zarzadzajace wczytywaniem zasobow
+    bool odswmap = false;
 
     sf::Vector2i pos;
 
@@ -35,6 +50,7 @@ int main()
             beta_obj.clear();
             obj.clear(); //reset
             texts.clear();
+            pola.clear();
 
             switch (state)
             {
@@ -53,7 +69,7 @@ int main()
                 }
                 break;
 
-            case 1:
+            case 1: //mapa
                 beta_obj.push_back(sf::RectangleShape(sf::Vector2f(760, 50)));
                 beta_obj[0].setPosition(sf::Vector2f(570, 875));
                 beta_obj[0].setFillColor(sf::Color::Blue);
@@ -70,6 +86,28 @@ int main()
                 texts[1].setString("1");
                 texts[0].setPosition(sf::Vector2f(950, 885));
                 texts[1].setPosition(sf::Vector2f(990, 490));
+                if (!(pola.size() != 0))
+                {
+                    int xowe = 380, yowe = 140;
+                    for (int i = 0; i < 4; i++)
+                    {
+                        xowe = 380;
+                        for (int j = 0; j < 5; j++)
+                        {
+                            pola.push_back(Pole(xowe, yowe));
+                            xowe += 240;
+                        }
+                        yowe += 60;
+                        xowe = 500;
+                        for (int j = 0; j < 4; j++)
+                        {
+                            pola.push_back(Pole(xowe, yowe));
+                            xowe += 240;
+                        }
+                        yowe += 60;
+                    }
+                    std::cout << "happen";
+                }
                 break;
 
             case 2:
@@ -260,6 +298,8 @@ int main()
         }
         window.clear();
         //odswierzanie
+        for (int i = 0; i < pola.size(); i++)
+            window.draw(pola[i].pole);
         for (int i = 0; i < beta_obj.size(); i++)
             window.draw(beta_obj[i]);
         for (int i = 0; i < obj.size(); i++)
