@@ -9,12 +9,26 @@ public:
     sf::Texture* point = &polebeta;
     int x = 0;
     int y = 0;
+    int nr = 0;
     sf::Sprite pole;
     Pole(int b, int c, sf::Texture* a) : point(a), x(b), y(c) { pole.setTexture(*point); pole.setPosition(sf::Vector2f(x, y)); }
     Pole(int b, int c) : x(b), y(c) { pole.setTexture(*point); pole.setPosition(sf::Vector2f(x, y)); }
+    bool hit(sf::Vector2i pos);
 private:
     //empty for now
 };
+
+bool Pole::hit(sf::Vector2i pos) //funkcja sprawdzajaca hitboxy hexagonow
+{
+    //std::cout << std::endl << "xt: " << x << " yt: " << y << " xm: " << pos.x << " ym: " << pos.y << std::endl;
+    if (pos.x > x && pos.x < (x + 60))
+        return ((- pos.x + y + x + 60) < pos.y) && ((pos.x + (y - x) + 60) > pos.y);
+    if (pos.x > (x + 60) && pos.x < (x + 120))
+        return (pos.y > y && pos.y < (y + 120));
+    if (pos.x > (x + 120) && pos.x < (x + 180))
+        return ((pos.x + (y - x) - 120) < pos.y) && ((-pos.x + y + x + 240) > pos.y);
+    return false;
+}
 
 int main()
 {
@@ -38,6 +52,7 @@ int main()
     std::vector<Pole> pola;
 
     int state = 0;
+    int pole_map = 2;
     bool change_status = true; //zmienne zarzadzajace wczytywaniem zasobow
     bool odswmap = false;
 
@@ -95,6 +110,7 @@ int main()
                         for (int j = 0; j < 5; j++)
                         {
                             pola.push_back(Pole(xowe, yowe));
+                            pola.back().nr = pola.size();
                             xowe += 240;
                         }
                         yowe += 60;
@@ -102,6 +118,7 @@ int main()
                         for (int j = 0; j < 4; j++)
                         {
                             pola.push_back(Pole(xowe, yowe));
+                            pola.back().nr = pola.size();
                             xowe += 240;
                         }
                         yowe += 60;
@@ -252,6 +269,18 @@ int main()
                     }
                     break;
                 case 1:
+                    for (int i = 0; i < pola.size(); i++)
+                    {
+                        if (pola[i].hit(pos))
+                        {
+                            pola[pole_map - 1].pole.setColor(sf::Color::White);
+                            pole_map = pola[i].nr;
+                            pola[i].pole.setColor(sf::Color::Red);
+                            break;
+                        }
+                    }
+
+                        //std::cout <<"pole: " << pola[i].nr << " status: " << pola[i].hit(pos) << std::endl;
                     if (pos.x > 570 && pos.x < 1330 && pos.y > 875 && pos.y < 925) //6
                     {
                         change_status = true;
