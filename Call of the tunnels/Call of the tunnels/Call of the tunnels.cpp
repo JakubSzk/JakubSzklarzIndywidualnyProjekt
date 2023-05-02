@@ -2,6 +2,7 @@
 #include <iostream>
 #include <vector>
 #include <string>
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////(pole)
 sf::Texture polebeta;
 class Pole
 {
@@ -11,8 +12,8 @@ public:
     int y = 0;
     int nr = 0;
     sf::Sprite pole;
-    Pole(int b, int c, sf::Texture* a) : point(a), x(b), y(c) { pole.setTexture(*point); pole.setPosition(sf::Vector2f(x, y)); }
-    Pole(int b, int c) : x(b), y(c) { pole.setTexture(*point); pole.setPosition(sf::Vector2f(x, y)); }
+    Pole(int b, int c, sf::Texture* a) : point(a), x(b), y(c) { pole.setTexture(*point); pole.setPosition(sf::Vector2f(x, y)); pole.setColor(sf::Color::Black); }
+    Pole(int b, int c) : x(b), y(c) { pole.setTexture(*point); pole.setPosition(sf::Vector2f(x, y)); pole.setColor(sf::Color::Black); }
     bool hit(sf::Vector2i pos);
 private:
     //empty for now
@@ -29,7 +30,7 @@ bool Pole::hit(sf::Vector2i pos) //funkcja sprawdzajaca hitboxy hexagonow
         return ((pos.x + (y - x) - 120) < pos.y) && ((-pos.x + y + x + 240) > pos.y);
     return false;
 }
-
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////(end pole)
 int main()
 {
     sf::Font font;
@@ -38,10 +39,11 @@ int main()
     //wczytywanie tekstur
     /////////////////////////////////////////////////////////////////////////////
     //tworzy zmienne tekstur
-    
+    sf::Texture map_back;
     /////////////////////////////////////////////////////////////////////////////
     //pobiera z pliku
-    polebeta.loadFromFile("resources/betapole.png");
+    polebeta.loadFromFile("resources/betapolee.png");
+    map_back.loadFromFile("resources/mapa.png");
     /////////////////////////////////////////////////////////////////////////////
     sf::RenderWindow window(sf::VideoMode(1900, 1000), "Call Of The Tunnels"); //tworzy okno
     window.setFramerateLimit(30); //limit klatek (bez tego komputer plonie)
@@ -125,6 +127,9 @@ int main()
                     }
                     std::cout << "happen";
                 }
+                obj.push_back(sf::Sprite());
+                obj.back().setTexture(map_back);
+                obj.back().setPosition(sf::Vector2f(0, 0));
                 break;
 
             case 2:
@@ -273,7 +278,7 @@ int main()
                     {
                         if (pola[i].hit(pos))
                         {
-                            pola[pole_map - 1].pole.setColor(sf::Color::White);
+                            pola[pole_map - 1].pole.setColor(sf::Color::Black);
                             pole_map = pola[i].nr;
                             pola[i].pole.setColor(sf::Color::Red);
                             break;
@@ -327,12 +332,14 @@ int main()
         }
         window.clear();
         //odswierzanie
+
+        for (int i = 0; i < obj.size(); i++)
+            window.draw(obj[i]);
+        
         for (int i = 0; i < pola.size(); i++)
             window.draw(pola[i].pole);
         for (int i = 0; i < beta_obj.size(); i++)
             window.draw(beta_obj[i]);
-        for (int i = 0; i < obj.size(); i++)
-            window.draw(obj[i]);
         for (int i = 0; i < texts.size(); i++)
             window.draw(texts[i]);
         window.display();
