@@ -7,6 +7,7 @@ sf::Texture polebeta;
 class Pole
 {
 public:
+    sf::Color color = sf::Color::Black;
     sf::Texture* point = &polebeta;
     int x = 0;
     int y = 0;
@@ -14,6 +15,7 @@ public:
     sf::Sprite pole;
     Pole(int b, int c, sf::Texture* a) : point(a), x(b), y(c) { pole.setTexture(*point); pole.setPosition(sf::Vector2f(x, y)); pole.setColor(sf::Color::Black); }
     Pole(int b, int c) : x(b), y(c) { pole.setTexture(*point); pole.setPosition(sf::Vector2f(x, y)); pole.setColor(sf::Color::Black); }
+    void change(sf::Texture* a);
     bool hit(sf::Vector2i pos);
 private:
     //empty for now
@@ -30,7 +32,90 @@ bool Pole::hit(sf::Vector2i pos) //funkcja sprawdzajaca hitboxy hexagonow
         return ((pos.x + (y - x) - 120) < pos.y) && ((-pos.x + y + x + 240) > pos.y);
     return false;
 }
+
+void Pole::change(sf::Texture* a)
+{
+    pole.setTexture(*a);
+    pole.setColor(sf::Color::White);
+    color = sf::Color::White;
+}
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////(end pole)
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////(staty)
+class Staty
+{
+public:
+    std::string nazwa = "entity";
+    //witalne
+    int hp = 0;
+    int armor = 0;
+    int witalnosc = 0;
+    //do ataku
+    int sila = 0;
+    int dmg = 0;
+    int zasieg = 0;
+    int szybkosc = 0;
+    //cechy
+    int stamina = 0;
+    int zrecznosc = 0;
+    int mana = 0;
+    Staty() {};
+    Staty(std::string nazwa, int hp, int armor, int witalnosc, int sila, int dmg, int zasieg, int szybkosc, int stamina, int zrecznosc, int mana) :
+        hp((hp < witalnosc) ? hp : witalnosc),
+        armor(armor),
+        witalnosc(witalnosc),
+        sila(sila),
+        dmg(dmg),
+        zasieg(zasieg),
+        szybkosc(szybkosc),
+        stamina(stamina),
+        zrecznosc(zrecznosc),
+        mana(mana),
+        nazwa(nazwa)
+    {
+        //if (hp > witalnosc)
+            //Staty(nazwa, witalnosc, armor, witalnosc, sila, dmg, zasieg, szybkosc, stamina, zrecznosc, mana);
+    };
+};
+
+Staty operator += (Staty& a, const Staty& b)
+{
+    return Staty(a.nazwa, a.hp + b.hp, a.armor + b.armor, a.witalnosc + b.witalnosc, a.sila + b.sila, a.dmg + b.dmg, a.zasieg + b.zasieg, a.szybkosc + b.szybkosc, a.stamina + b.stamina, a.zrecznosc + b.zrecznosc, a.mana + b.mana);
+}
+Staty operator + (const Staty& a, const Staty& b)
+{
+    return Staty("mix", a.hp + b.hp, a.armor + b.armor, a.witalnosc + b.witalnosc, a.sila + b.sila, a.dmg + b.dmg, a.zasieg + b.zasieg, a.szybkosc + b.szybkosc, a.stamina + b.stamina, a.zrecznosc + b.zrecznosc, a.mana + b.mana);
+}
+Staty operator -= (Staty& a, const Staty& b)
+{
+    return Staty(a.nazwa, a.hp - b.hp, a.armor - b.armor, a.witalnosc - b.witalnosc, a.sila - b.sila, a.dmg - b.dmg, a.zasieg - b.zasieg, a.szybkosc - b.szybkosc, a.stamina - b.stamina, a.zrecznosc - b.zrecznosc, a.mana - b.mana);
+}
+Staty operator - (const Staty& a, const Staty& b)
+{
+    return Staty("mix", a.hp - b.hp, a.armor - b.armor, a.witalnosc - b.witalnosc, a.sila - b.sila, a.dmg - b.dmg, a.zasieg - b.zasieg, a.szybkosc - b.szybkosc, a.stamina - b.stamina, a.zrecznosc - b.zrecznosc, a.mana - b.mana);
+}
+std::ostream& operator << (std::ostream& out, const Staty& f)
+{
+    return out
+        << "\nNazwa: " << f.nazwa
+        << "\nHp: " << f.hp
+        << "\nArmor: " << f.armor
+        << "\nWitalnosc: " << f.witalnosc
+        << "\nSila: " << f.sila
+        << "\nDmg: " << f.dmg
+        << "\nZasieg: " << f.zasieg
+        << "\nSzybkosc: " << f.szybkosc
+        << "\nStamina: " << f.stamina
+        << "\nZrecznosc: " << f.zrecznosc
+        << "\nMana: " << f.mana;
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////(end staty)
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////(item)
+class Item
+{
+public:
+
+};
+
 int main()
 {
     sf::Font font;
@@ -40,10 +125,14 @@ int main()
     /////////////////////////////////////////////////////////////////////////////
     //tworzy zmienne tekstur
     sf::Texture map_back;
+    sf::Texture eq_back;
+    sf::Texture pole_blok;
     /////////////////////////////////////////////////////////////////////////////
     //pobiera z pliku
+    pole_blok.loadFromFile("resources/poleblok.png");
     polebeta.loadFromFile("resources/betapolee.png");
     map_back.loadFromFile("resources/mapa.png");
+    eq_back.loadFromFile("resources/ekwipunek.png");
     /////////////////////////////////////////////////////////////////////////////
     sf::RenderWindow window(sf::VideoMode(1900, 1000), "Call Of The Tunnels"); //tworzy okno
     window.setFramerateLimit(30); //limit klatek (bez tego komputer plonie)
@@ -125,6 +214,7 @@ int main()
                         }
                         yowe += 60;
                     }
+                    pola[17].change(&pole_blok);
                     std::cout << "happen";
                 }
                 obj.push_back(sf::Sprite());
@@ -149,6 +239,9 @@ int main()
                 texts[1].setString("2");
                 texts[0].setPosition(sf::Vector2f(950, 885));
                 texts[1].setPosition(sf::Vector2f(990, 490));
+                obj.push_back(sf::Sprite());
+                obj.back().setTexture(eq_back);
+                obj.back().setPosition(sf::Vector2f(0, 0));
                 break;
 
             case 3:
@@ -237,6 +330,12 @@ int main()
             if (event.type == sf::Event::Closed)
                 window.close();
 
+            /*if (event.type == sf::Keyboard::isKeyPressed(sf::Keyboard::Tilde))
+            {
+                std::string entered;
+                std::cin >> entered;
+            }*/
+
             if (event.type == sf::Event::MouseButtonPressed)
             {
                 switch (state)
@@ -278,9 +377,9 @@ int main()
                     {
                         if (pola[i].hit(pos))
                         {
-                            pola[pole_map - 1].pole.setColor(sf::Color::Black);
+                            pola[pole_map - 1].pole.setColor(pola[pole_map-1].color);
                             pole_map = pola[i].nr;
-                            pola[i].pole.setColor(sf::Color::Red);
+                            pola[i].pole.setColor(sf::Color::Green);
                             break;
                         }
                     }

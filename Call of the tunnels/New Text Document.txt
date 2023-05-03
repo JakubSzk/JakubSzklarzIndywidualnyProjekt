@@ -1,0 +1,8 @@
+Staty operator -= (Staty a, Staty b)
+{
+    return Staty(a.nazwa, a.hp - b.hp, a.armor - b.armor, a.sila - b.sila, a.dmg - b.dmg, a.zasieg - b.zasieg, a.szybkosc - b.szybkosc, a.stamina - b.stamina, a.zrecznosc - b.zrecznosc, a.mana - b.mana);
+}
+Staty operator - (Staty a, Staty b)
+{
+    return Staty("mix", a.hp - b.hp, a.armor - b.armor, a.sila - b.sila, a.dmg - b.dmg, a.zasieg - b.zasieg, a.szybkosc - b.szybkosc, a.stamina - b.stamina, a.zrecznosc - b.zrecznosc, a.mana - b.mana);
+}
