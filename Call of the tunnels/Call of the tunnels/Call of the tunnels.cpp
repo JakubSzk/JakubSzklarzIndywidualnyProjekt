@@ -2,8 +2,37 @@
 #include <iostream>
 #include <vector>
 #include <string>
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////(pole)
+#include <fstream>
 sf::Texture polebeta;
+sf::Texture pole_blok; 
+int pol_tab[6]={0,0,0,0,0,0}; //tablica na pola sasiednie
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////(gracz)
+class Gracz
+{
+public:
+    void load();
+    int pole_map = 1;
+    bool inside = false;
+private:
+    std::vector<std::string> wczytane;
+    std::vector<std::string> itemki;
+};
+
+void Gracz::load()
+{
+    std::string name;
+    std::fstream plik;
+    name = "resources/gracz/load.txt";
+    plik.open(name.c_str(), std::ios::in);
+    while (std::getline(plik, name))
+        wczytane.push_back(name);
+    plik.close();
+    if (wczytane[0] == "inside")
+        inside = true;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////(end gracz)
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////(pole)
 class Pole
 {
 public:
@@ -12,18 +41,169 @@ public:
     int x = 0;
     int y = 0;
     int nr = 0;
+    bool inside_bool = false;
     sf::Sprite pole;
     Pole(int b, int c, sf::Texture* a) : point(a), x(b), y(c) { pole.setTexture(*point); pole.setPosition(sf::Vector2f(x, y)); pole.setColor(sf::Color::Black); }
     Pole(int b, int c) : x(b), y(c) { pole.setTexture(*point); pole.setPosition(sf::Vector2f(x, y)); pole.setColor(sf::Color::Black); }
     void change(sf::Texture* a);
+    void lock();
+    void unlock();
+    void load();
     bool hit(sf::Vector2i pos);
+    void pola_obok();
+    bool locked = false;
 private:
-    //empty for now
+    std::vector<std::string> outside;
+    std::vector<std::string> inside;
+    
+    //std::vector<std::string> passable;
 };
+
+void Pole::pola_obok()
+{
+    for (int i = 0; i < 6; i++)
+        pol_tab[i] = 0;
+    switch (nr)
+    {
+    case 1:
+        pol_tab[0] = 6;
+        pol_tab[1] = 10;
+        return;
+        break;
+    case 2:
+    case 3:
+    case 4:
+        pol_tab[3] = nr+4;
+        pol_tab[4] = nr+9;
+        pol_tab[5] = nr+5;
+        return;
+        break;
+    case 5:
+        pol_tab[3] = nr + 4;
+        pol_tab[4] = nr + 9;
+        return;
+        break;
+    case 6:
+    case 7:
+    case 8:
+    case 9:
+        pol_tab[0] = nr + -5;
+        pol_tab[2] = nr + -4;
+        pol_tab[3] = nr + 4;
+        pol_tab[4] = nr + 9;
+        pol_tab[5] = nr + 5;
+        return;
+        break;
+    case 10:
+    case 19:
+        pol_tab[1] = nr + -9;
+        pol_tab[2] = nr + -4;
+        pol_tab[4] = nr + 9;
+        pol_tab[5] = nr + 5;
+        return;
+        break;
+    case 14:
+    case 23:
+        pol_tab[0] = nr + -5;
+        pol_tab[1] = nr + -9;
+        pol_tab[3] = nr + 4;
+        pol_tab[4] = nr + 9;
+        return;
+        break;
+    case 29:
+    case 30:
+    case 31:
+        pol_tab[0] = nr + -5;
+        pol_tab[1] = nr + -9;
+        pol_tab[2] = nr + -4;
+        pol_tab[3] = nr + 4;
+        pol_tab[5] = nr + 5;
+        return;
+        break;
+    case 33:
+    case 34:
+    case 35:
+    case 36:
+        pol_tab[0] = nr + -5;
+        pol_tab[1] = nr + -9;
+        pol_tab[2] = nr + -4;
+        return;
+        break;
+    case 28:
+        pol_tab[1] = nr + -9;
+        pol_tab[2] = nr + -4;
+        pol_tab[5] = nr + 5;
+        return;
+        break;
+    case 32:
+        pol_tab[0] = nr + -5;
+        pol_tab[1] = nr + -9;
+        pol_tab[3] = nr + 4;
+        return;
+        break;
+    }
+    pol_tab[0] = nr + -5;
+    pol_tab[1] = nr + -9;
+    pol_tab[2] = nr + -4;
+    pol_tab[3] = nr + 4;
+    pol_tab[4] = nr + 9;
+    pol_tab[5] = nr + 5;
+}
+
+void Pole::load()
+{
+    std::string name;
+    std::fstream plik;
+    name = "resources/pola/" + std::to_string(nr) + "i.txt";
+    plik.open(name.c_str(), std::ios::in);
+    while (std::getline(plik, name))
+        inside.push_back(name);
+    plik.close();
+    name = "resources/pola/" + std::to_string(nr) + "o.txt";
+    plik.open(name.c_str(), std::ios::in);
+    while (std::getline(plik, name))
+        outside.push_back(name);
+    plik.close();
+
+    switch (nr)
+    {
+    case 1:
+    case 6:
+    case 11:
+    case 16:
+    case 12:
+    case 8:
+    case 17:
+    case 21:
+    case 13:
+    case 9:
+    case 5:
+    case 28:
+        inside_bool = true;
+        break;
+    }
+}
+
+void Pole::lock()
+{
+    change(&pole_blok);
+    locked = true;
+}
+
+void Pole::unlock()
+{
+    locked = false;
+    pole.setTexture(polebeta);
+    pole.setColor(sf::Color::Black);
+    color = sf::Color::Black;
+}
 
 bool Pole::hit(sf::Vector2i pos) //funkcja sprawdzajaca hitboxy hexagonow
 {
-    //std::cout << std::endl << "xt: " << x << " yt: " << y << " xm: " << pos.x << " ym: " << pos.y << std::endl;
+    if (locked)
+        return false;
+    if (pole.getColor() != sf::Color::Cyan)
+        return false;
     if (pos.x > x && pos.x < (x + 60))
         return ((- pos.x + y + x + 60) < pos.y) && ((pos.x + (y - x) + 60) > pos.y);
     if (pos.x > (x + 60) && pos.x < (x + 120))
@@ -126,7 +306,6 @@ int main()
     //tworzy zmienne tekstur
     sf::Texture map_back;
     sf::Texture eq_back;
-    sf::Texture pole_blok;
     /////////////////////////////////////////////////////////////////////////////
     //pobiera z pliku
     pole_blok.loadFromFile("resources/poleblok.png");
@@ -136,14 +315,14 @@ int main()
     /////////////////////////////////////////////////////////////////////////////
     sf::RenderWindow window(sf::VideoMode(1900, 1000), "Call Of The Tunnels"); //tworzy okno
     window.setFramerateLimit(30); //limit klatek (bez tego komputer plonie)
+    Gracz gracz;
+    gracz.load();
    
     std::vector<sf::RectangleShape> beta_obj;
     std::vector<sf::Text> texts; //vectory zawierajace wczytywane obiekty
     std::vector<sf::Sprite> obj;
     std::vector<Pole> pola;
-
     int state = 0;
-    int pole_map = 2;
     bool change_status = true; //zmienne zarzadzajace wczytywaniem zasobow
     bool odswmap = false;
 
@@ -158,9 +337,9 @@ int main()
             texts.clear();
             pola.clear();
 
-            switch (state)
+            
+            if (state == 0)//menu
             {
-            case 0: //menu
                 for (int i = 0; i < 6; i++)
                 {
                     beta_obj.push_back(sf::RectangleShape(sf::Vector2f(760, 50)));
@@ -173,9 +352,9 @@ int main()
                     texts[i].setCharacterSize(30);
                     texts[i].setString("opcja" + std::to_string(i + 1));
                 }
-                break;
-
-            case 1: //mapa
+            }
+            else if (state == 1) //mapa
+            {
                 beta_obj.push_back(sf::RectangleShape(sf::Vector2f(760, 50)));
                 beta_obj[0].setPosition(sf::Vector2f(570, 875));
                 beta_obj[0].setFillColor(sf::Color::Blue);
@@ -202,6 +381,7 @@ int main()
                         {
                             pola.push_back(Pole(xowe, yowe));
                             pola.back().nr = pola.size();
+                            pola.back().load();
                             xowe += 240;
                         }
                         yowe += 60;
@@ -210,19 +390,22 @@ int main()
                         {
                             pola.push_back(Pole(xowe, yowe));
                             pola.back().nr = pola.size();
+                            pola.back().load();
                             xowe += 240;
                         }
                         yowe += 60;
                     }
-                    pola[17].change(&pole_blok);
+                    pola[17].lock();
                     std::cout << "happen";
                 }
                 obj.push_back(sf::Sprite());
                 obj.back().setTexture(map_back);
                 obj.back().setPosition(sf::Vector2f(0, 0));
-                break;
+                pola[gracz.pole_map - 1].pole.setColor(sf::Color::Cyan);
 
-            case 2:
+            }
+            else if (state == 2)
+            {
                 beta_obj.push_back(sf::RectangleShape(sf::Vector2f(760, 50)));
                 beta_obj[0].setPosition(sf::Vector2f(570, 875));
                 beta_obj[0].setFillColor(sf::Color::Blue);
@@ -242,9 +425,10 @@ int main()
                 obj.push_back(sf::Sprite());
                 obj.back().setTexture(eq_back);
                 obj.back().setPosition(sf::Vector2f(0, 0));
-                break;
 
-            case 3:
+            }
+            else if (state == 3)
+            {
                 beta_obj.push_back(sf::RectangleShape(sf::Vector2f(760, 50)));
                 beta_obj[0].setPosition(sf::Vector2f(570, 875));
                 beta_obj[0].setFillColor(sf::Color::Blue);
@@ -261,9 +445,9 @@ int main()
                 texts[1].setString("3");
                 texts[0].setPosition(sf::Vector2f(950, 885));
                 texts[1].setPosition(sf::Vector2f(990, 490));
-                break;
-
-            case 4:
+            }
+            else if (state == 4)
+            {
                 beta_obj.push_back(sf::RectangleShape(sf::Vector2f(760, 50)));
                 beta_obj[0].setPosition(sf::Vector2f(570, 875));
                 beta_obj[0].setFillColor(sf::Color::Blue);
@@ -280,9 +464,10 @@ int main()
                 texts[1].setString("4");
                 texts[0].setPosition(sf::Vector2f(950, 885));
                 texts[1].setPosition(sf::Vector2f(990, 490));
-                break;
 
-            case 5:
+            }
+            else if (state == 5)
+            {
                 beta_obj.push_back(sf::RectangleShape(sf::Vector2f(760, 50)));
                 beta_obj[0].setPosition(sf::Vector2f(570, 875));
                 beta_obj[0].setFillColor(sf::Color::Blue);
@@ -299,9 +484,11 @@ int main()
                 texts[1].setString("5");
                 texts[0].setPosition(sf::Vector2f(950, 885));
                 texts[1].setPosition(sf::Vector2f(990, 490));
-                break;
+            }
+            else if (state == 6)
+            {
 
-            case 6:
+            
                 beta_obj.push_back(sf::RectangleShape(sf::Vector2f(760, 50)));
                 beta_obj[0].setPosition(sf::Vector2f(570, 875));
                 beta_obj[0].setFillColor(sf::Color::Blue);
@@ -318,7 +505,7 @@ int main()
                 texts[1].setString("6");
                 texts[0].setPosition(sf::Vector2f(950, 885));
                 texts[1].setPosition(sf::Vector2f(990, 490));
-                break;
+               
 
             }
             change_status = false;
@@ -334,13 +521,14 @@ int main()
             {
                 std::string entered;
                 std::cin >> entered;
+                std::cout << entered;
             }*/
 
             if (event.type == sf::Event::MouseButtonPressed)
             {
-                switch (state)
+                
+                if (state == 0)
                 {
-                case 0:
                     if (pos.x > 570 && pos.x < 1330 && pos.y > 500 && pos.y < 550) //1
                     {
                         change_status = true;
@@ -371,61 +559,91 @@ int main()
                         change_status = true;
                         state = 6;
                     }
-                    break;
-                case 1:
+                }
+                else if (state == 1)
+                {
                     for (int i = 0; i < pola.size(); i++)
                     {
                         if (pola[i].hit(pos))
                         {
-                            pola[pole_map - 1].pole.setColor(pola[pole_map-1].color);
-                            pole_map = pola[i].nr;
-                            pola[i].pole.setColor(sf::Color::Green);
+                            if (pola[i].inside_bool == gracz.inside || !(gracz.inside))
+                            {
+                                for (int j = 0; j < 6; j++)
+                                {
+                                    if (pol_tab[j] != 0)
+                                    {
+                                        if (pola[pol_tab[j] - 1].inside_bool == gracz.inside || !(gracz.inside))
+                                        {
+                                            pola[pol_tab[j] - 1].pole.setColor(pola[pol_tab[j] - 1].color);
+                                        }
+                                    }
+                                }
+                                pola[gracz.pole_map - 1].pole.setColor(pola[gracz.pole_map - 1].color);
+                                gracz.pole_map = pola[i].nr;
+                                pola[i].pole.setColor(sf::Color::Green);
+                                pola[i].pola_obok();
+                                for (int j = 0; j < 6; j++)
+                                {
+                                    if (pol_tab[j] != 0)
+                                    {
+                                        if ((pola[pol_tab[j] - 1].inside_bool == gracz.inside || !(gracz.inside)) && !pola[pol_tab[j] - 1].locked)
+                                        {
+                                            pola[pol_tab[j] - 1].pole.setColor(sf::Color::Cyan);
+                                        }
+                                    }
+                                }
+                            }
                             break;
                         }
                     }
 
-                        //std::cout <<"pole: " << pola[i].nr << " status: " << pola[i].hit(pos) << std::endl;
+                    //std::cout <<"pole: " << pola[i].nr << " status: " << pola[i].hit(pos) << std::endl;
                     if (pos.x > 570 && pos.x < 1330 && pos.y > 875 && pos.y < 925) //6
                     {
                         change_status = true;
                         state = 0;
                     }
-                    break;
-                case 2:
+                }
+                else if (state == 2)
+                {
                     if (pos.x > 570 && pos.x < 1330 && pos.y > 875 && pos.y < 925) //6
                     {
                         change_status = true;
                         state = 0;
                     }
-                    break;
-                case 3:
+                }
+                else if (state == 3)
+                {
                     if (pos.x > 570 && pos.x < 1330 && pos.y > 875 && pos.y < 925) //6
                     {
                         change_status = true;
                         state = 0;
                     }
-                    break;
-                case 4:
+                }
+                else if (state == 4)
+                {
                     if (pos.x > 570 && pos.x < 1330 && pos.y > 875 && pos.y < 925) //6
                     {
                         change_status = true;
                         state = 0;
                     }
-                    break;
-                case 5:
+                }
+                else if (state == 5)
+                {
                     if (pos.x > 570 && pos.x < 1330 && pos.y > 875 && pos.y < 925) //6
                     {
                         change_status = true;
                         state = 0;
                     }
-                    break;
-                case 6:
+                }
+                else if (state == 6)
+                {
                     if (pos.x > 570 && pos.x < 1330 && pos.y > 875 && pos.y < 925) //6
                     {
                         change_status = true;
                         state = 0;
                     }
-                    break;
+                    
                 }
             }
         }
