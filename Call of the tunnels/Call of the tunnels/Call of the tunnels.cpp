@@ -7,29 +7,7 @@ sf::Texture polebeta;
 sf::Texture pole_blok; 
 int pol_tab[6]={0,0,0,0,0,0}; //tablica na pola sasiednie
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////(gracz)
-class Gracz
-{
-public:
-    void load();
-    int pole_map = 1;
-    bool inside = false;
-private:
-    std::vector<std::string> wczytane;
-    std::vector<std::string> itemki;
-};
 
-void Gracz::load()
-{
-    std::string name;
-    std::fstream plik;
-    name = "resources/gracz/load.txt";
-    plik.open(name.c_str(), std::ios::in);
-    while (std::getline(plik, name))
-        wczytane.push_back(name);
-    plik.close();
-    if (wczytane[0] == "inside")
-        inside = true;
-}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////(end gracz)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////(pole)
@@ -293,14 +271,166 @@ std::ostream& operator << (std::ostream& out, const Staty& f)
 class Item
 {
 public:
+    virtual ~Item() = default;
 
+    virtual void animacja(int nr_klatki) = 0;
+    virtual void load() = 0;
+};
+//Klasa dla broni mele
+class Mele :public Item
+{
+private:
+    sf::Texture tekstura_eq;
+    sf::Texture tekstura_postac;
+    sf::Texture tekstura_attack;
+    //Staty staty;
+    std::string name;
+public:
+    Mele(std::string name) : name(name) {};
+    
+    virtual void animacja(int nr_klatki) override
+    {
+        std::cout << "a";
+    }
+    //funkcja do inicjacji itemu nie ma potrzeby wywolywac jesli tekstury nie beda potrzebne
+    virtual void load() override
+    {
+        std::cout << "a";
+    }
+};
+//Klasa dla przedmiotow broni zasiegowej
+class Range :public Item
+{
+private:
+    sf::Texture tekstura_eq;
+    sf::Texture tekstura_postac;
+    sf::Texture tekstura_attack;
+    Staty staty;
+    std::string name;
+public:
+    Range(std::string name) : name(name) {};
+    //funkcja do animacji nalezy wywolac w petli podajac numer klatki
+    //bedzie wywolywac co sie dzieje na kazdej klatce - przekroczenie zaplanowanych klatek nie jest problemem
+    virtual void animacja(int nr_klatki) override
+    {
+        std::cout << "a";
+    }
+    //funkcja do inicjacji itemu nie ma potrzeby wywolywac jesli tekstury nie beda potrzebne
+    virtual void load() override
+    {
+        std::cout << "a";
+    }
+};
+//Klasa dla przedmiotow magicznych
+class Magic :public Item
+{
+private:
+    sf::Texture tekstura_eq;
+    sf::Texture tekstura_wear;
+    sf::Texture tekstura_attack;
+    Staty staty;
+    std::string name;
+public:
+    Magic(std::string name) : name(name) {};
+    //funkcja do animacji nalezy wywolac w petli podajac numer klatki
+    //bedzie wywolywac co sie dzieje na kazdej klatce - przekroczenie zaplanowanych klatek nie jest problemem
+    virtual void animacja(int nr_klatki) override
+    {
+        std::cout << "a";
+        //funkcja do inicjacji itemu nie ma potrzeby wywolywac jesli tekstury nie beda potrzebne
+    }
+    virtual void load() override
+    {
+        std::cout << "a";
+    }
+};
+//Klasa dla przedmiotow noszonych na piersi
+class Armor :public Item
+{
+private:
+    sf::Texture tekstura_eq;
+    sf::Texture tekstura_wear;
+    sf::Texture tekstura_attack;
+    Staty staty;
+    std::string name;
+public:
+};
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////(end item)
+
+//funkcja wykrywajaca ktore pole w ekwiupunku zostalo klikniete
+//jesli nie trafi (zadne pole nie klikniete) zwroci 0, wiec mozna zastosowac if
+int detekcja_nr_pola_w_ekwipunku(sf::Vector2i pos, int ilosc_itemow)
+{
+    pos.x -= 625;
+    pos.y -= 45;
+    float porown = float(int(pos.x / 115));
+    if (porown + 1 > 6)
+        return 0;
+    if (!(pos.x <= (porown * 115 + 80)))
+        return 0;
+    int zwrotna = int(porown);
+    porown = float(int(pos.y / 115));
+    if (porown + 1 > 7)
+        return 0;
+    if (!(pos.x <= (porown * 115 + 80)))
+        return 0;
+    return (zwrotna + (int(porown) * 6) <= ilosc_itemow) ? (zwrotna + (int(porown) * 6)) : 0;
+}
+class Gracz
+{
+public:
+    void load();
+    int pole_map = 1;
+    bool inside = false;
+    ~Gracz()
+    {
+        for (int i = itemki_w_eq.size(); i <= 0 ; i--)
+        {
+            delete itemki_w_eq[i];
+        }
+    }
+    //Staty stats;
+private:
+    std::vector<std::string> wczytane;
+    std::vector<Item*> itemki_w_eq;
 };
 
+void Gracz::load()
+{
+    std::string name;
+    std::fstream plik;
+    name = "resources/gracz/load.txt";
+    plik.open(name.c_str(), std::ios::in);
+    while (std::getline(plik, name))
+        wczytane.push_back(name);
+    plik.close();
+    if (wczytane[0] == "inside")
+        inside = true;
+
+    //////////////////////////////////////////////////
+
+    std::vector<std::string> itemki;
+    name = "resources/gracz/eq.txt";
+    plik.open(name.c_str(), std::ios::in);
+    while (std::getline(plik, name))
+        itemki.push_back(name);
+    plik.close();
+    for (int i = 0; i < itemki.size(); i += 2)
+    { 
+        if (itemki[i + 1] == "mele")
+        {
+            itemki_w_eq.push_back(new Mele(itemki[i]));
+        }
+    }
+
+}
 int main()
 {
     sf::Font font;
     font.loadFromFile("resources/Jack.ttf"); //czcionka
-
+    //Mele x("abc");
+    //Item* ptr;
+    //ptr = &Mele("abc");
     //wczytywanie tekstur
     /////////////////////////////////////////////////////////////////////////////
     //tworzy zmienne tekstur
@@ -314,7 +444,7 @@ int main()
     eq_back.loadFromFile("resources/ekwipunek.png");
     /////////////////////////////////////////////////////////////////////////////
     sf::RenderWindow window(sf::VideoMode(1900, 1000), "Call Of The Tunnels"); //tworzy okno
-    window.setFramerateLimit(30); //limit klatek (bez tego komputer plonie)
+    window.setFramerateLimit(15); //limit klatek (bez tego komputer plonie)
     Gracz gracz;
     gracz.load();
    
@@ -661,6 +791,6 @@ int main()
             window.draw(texts[i]);
         window.display();
     }
-
+    
     return 0;
 }
