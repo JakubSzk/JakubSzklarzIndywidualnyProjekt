@@ -6,10 +6,6 @@
 sf::Texture polebeta;
 sf::Texture pole_blok; 
 int pol_tab[6]={0,0,0,0,0,0}; //tablica na pola sasiednie
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////(gracz)
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////(end gracz)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////(pole)
 class Pole
 {
@@ -275,6 +271,7 @@ public:
 
     virtual void animacja(int nr_klatki) = 0;
     virtual void load() = 0;
+    virtual sf::Texture* tekstura_w_eq() = 0;
 };
 //Klasa dla broni mele
 class Mele :public Item
@@ -283,8 +280,9 @@ private:
     sf::Texture tekstura_eq;
     sf::Texture tekstura_postac;
     sf::Texture tekstura_attack;
-    //Staty staty;
+    Staty staty;
     std::string name;
+    bool wear = false;
 public:
     Mele(std::string name) : name(name) {};
     
@@ -295,9 +293,23 @@ public:
     //funkcja do inicjacji itemu nie ma potrzeby wywolywac jesli tekstury nie beda potrzebne
     virtual void load() override
     {
-        std::cout << "a";
+        std::fstream plik;
+        plik.open(("resources/itemy/" + name + "/" + name + ".txt").c_str(), std::ios::in);
+        int dostat[10] = {0,0,0,0,0,0,0,0,0,0};
+        std::string linia;
+        int count = 0;
+        while (getline(plik, linia))
+        {
+            dostat[count] = std::stoi(linia);
+            count++;
+        }
+        staty = Staty(name, dostat[0], dostat[1], dostat[2], dostat[3], dostat[4], dostat[5], dostat[6], dostat[7], dostat[8], dostat[9]);
+        plik.close();
+        tekstura_eq.loadFromFile(("resources/itemy/" + name + "/" + name + " eq.png"));
     }
+    virtual sf::Texture* tekstura_w_eq() override { return &tekstura_eq; }
 };
+/*
 //Klasa dla przedmiotow broni zasiegowej
 class Range :public Item
 {
@@ -354,26 +366,30 @@ private:
     Staty staty;
     std::string name;
 public:
-};
+};*/
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////(end item)
 
 //funkcja wykrywajaca ktore pole w ekwiupunku zostalo klikniete
 //jesli nie trafi (zadne pole nie klikniete) zwroci 0, wiec mozna zastosowac if
 int detekcja_nr_pola_w_ekwipunku(sf::Vector2i pos, int ilosc_itemow)
 {
-    pos.x -= 625;
-    pos.y -= 45;
+    pos.x -= 620;
+    pos.y -= 80;
+    std::cout << pos.x << "a " << pos.y << "\n";
     float porown = float(int(pos.x / 115));
-    if (porown + 1 > 6)
+    porown += 1;
+    if (porown > 6 || porown < 0)
         return 0;
-    if (!(pos.x <= (porown * 115 + 80)))
+    if (!(pos.x <= ((porown - 1) * 115 + 80)))
         return 0;
     int zwrotna = int(porown);
+    std::cout << zwrotna << " zwrotna\n";
     porown = float(int(pos.y / 115));
     if (porown + 1 > 7)
         return 0;
-    if (!(pos.x <= (porown * 115 + 80)))
+    if (!(pos.y <= (porown * 115 + 80)))
         return 0;
+    std::cout << std::to_string(zwrotna + (int(porown) * 6)) << " <= " << ilosc_itemow << "\n";
     return (zwrotna + (int(porown) * 6) <= ilosc_itemow) ? (zwrotna + (int(porown) * 6)) : 0;
 }
 class Gracz
@@ -389,10 +405,12 @@ public:
             delete itemki_w_eq[i];
         }
     }
+    int ilosc_itemkow_eq() { return itemki_w_eq.size(); }
     //Staty stats;
+    std::vector<Item*> itemki_w_eq;
 private:
     std::vector<std::string> wczytane;
-    std::vector<Item*> itemki_w_eq;
+    
 };
 
 void Gracz::load()
@@ -406,7 +424,6 @@ void Gracz::load()
     plik.close();
     if (wczytane[0] == "inside")
         inside = true;
-
     //////////////////////////////////////////////////
 
     std::vector<std::string> itemki;
@@ -420,10 +437,19 @@ void Gracz::load()
         if (itemki[i + 1] == "mele")
         {
             itemki_w_eq.push_back(new Mele(itemki[i]));
+            itemki_w_eq.back()->load();
         }
     }
 
 }
+
+sf::Vector2f pozycja_eq(int nr)
+{
+    if (nr % 6)
+        return sf::Vector2f(((nr % 6) - 1) * 115 + 620, ((nr - (nr % 6)) / 6) * 115 + 80);
+    return sf::Vector2f(1195, (nr / 6 - 1) * 115 + 80);
+}
+
 int main()
 {
     sf::Font font;
@@ -436,12 +462,14 @@ int main()
     //tworzy zmienne tekstur
     sf::Texture map_back;
     sf::Texture eq_back;
+    sf::Texture itemback;
     /////////////////////////////////////////////////////////////////////////////
     //pobiera z pliku
     pole_blok.loadFromFile("resources/poleblok.png");
     polebeta.loadFromFile("resources/betapolee.png");
     map_back.loadFromFile("resources/mapa.png");
     eq_back.loadFromFile("resources/ekwipunek.png");
+    itemback.loadFromFile("resources/backgrounditem.png");
     /////////////////////////////////////////////////////////////////////////////
     sf::RenderWindow window(sf::VideoMode(1900, 1000), "Call Of The Tunnels"); //tworzy okno
     window.setFramerateLimit(15); //limit klatek (bez tego komputer plonie)
@@ -457,7 +485,6 @@ int main()
     bool odswmap = false;
 
     sf::Vector2i pos;
-
     while (window.isOpen())
     {
         if (change_status) //wczytywanie
@@ -534,7 +561,7 @@ int main()
                 pola[gracz.pole_map - 1].pole.setColor(sf::Color::Cyan);
 
             }
-            else if (state == 2)
+            else if (state == 2) //eq
             {
                 beta_obj.push_back(sf::RectangleShape(sf::Vector2f(760, 50)));
                 beta_obj[0].setPosition(sf::Vector2f(570, 875));
@@ -556,6 +583,17 @@ int main()
                 obj.back().setTexture(eq_back);
                 obj.back().setPosition(sf::Vector2f(0, 0));
 
+                obj.push_back(sf::Sprite());
+                obj.back().setTexture(itemback);
+                obj.back().setPosition(sf::Vector2f(1920, 1080));
+                obj.back().setColor(sf::Color::Green);
+
+                for (int i = 0; i < gracz.ilosc_itemkow_eq(); i++)
+                {
+                    obj.push_back(sf::Sprite());
+                    obj.back().setTexture(*gracz.itemki_w_eq[i]->tekstura_w_eq());
+                    obj.back().setPosition(pozycja_eq(i + 1));
+                }
             }
             else if (state == 3)
             {
@@ -734,12 +772,16 @@ int main()
                         state = 0;
                     }
                 }
-                else if (state == 2)
+                else if (state == 2) //eq
                 {
                     if (pos.x > 570 && pos.x < 1330 && pos.y > 875 && pos.y < 925) //6
                     {
                         change_status = true;
                         state = 0;
+                    }
+                    if (detekcja_nr_pola_w_ekwipunku(pos, gracz.ilosc_itemkow_eq()))
+                    {
+                        obj[1].setPosition(pozycja_eq(detekcja_nr_pola_w_ekwipunku(pos, gracz.ilosc_itemkow_eq())));
                     }
                 }
                 else if (state == 3)
@@ -778,7 +820,7 @@ int main()
             }
         }
         window.clear();
-        //odswierzanie
+        //odswiezanie
 
         for (int i = 0; i < obj.size(); i++)
             window.draw(obj[i]);
