@@ -387,7 +387,7 @@ int detekcja_nr_pola_w_ekwipunku(sf::Vector2i pos, int ilosc_itemow)
 {
     pos.x -= 620;
     pos.y -= 80;
-    std::cout << pos.x << "a " << pos.y << "\n";
+    //std::cout << pos.x << "a " << pos.y << "\n";
     float porown = float(int(pos.x / 115));
     porown += 1;
     if (porown > 6 || porown < 0)
@@ -395,13 +395,13 @@ int detekcja_nr_pola_w_ekwipunku(sf::Vector2i pos, int ilosc_itemow)
     if (!(pos.x <= ((porown - 1) * 115 + 80)))
         return 0;
     int zwrotna = int(porown);
-    std::cout << zwrotna << " zwrotna\n";
+    //std::cout << zwrotna << " zwrotna\n";
     porown = float(int(pos.y / 115));
     if (porown + 1 > 7)
         return 0;
     if (!(pos.y <= (porown * 115 + 80)))
         return 0;
-    std::cout << std::to_string(zwrotna + (int(porown) * 6)) << " <= " << ilosc_itemow << "\n";
+    std::cout << (zwrotna + (int(porown) * 6)) << "\n";
     return (zwrotna + (int(porown) * 6) <= ilosc_itemow) ? (zwrotna + (int(porown) * 6)) : 0;
 }
 class Gracz
@@ -933,6 +933,12 @@ int main()
                                 obj.erase(obj.end() - 1);
                             gracz.wear(hold);
                             gracz.zalozone[hold]->initiate_wear();
+                            for (int i = 0; i < gracz.ilosc_itemkow_eq(); i++)
+                            {
+                                
+                                obj[18 + i].setTexture(*gracz.itemki_w_eq[i]->tekstura_w_eq());
+                                
+                            }
                             for (int i = 0; i < 10; i++)
                             {
                                 if (gracz.zalozone[i])
