@@ -1,28 +1,28 @@
 meleitem name
 mele
-meleitem name
+demon sword
 mele
 meleitem name
 mele
-meleitem name
+demon sword
 mele
 meleitem name
 mele
-meleitem name
+demon sword
 mele
 meleitem name
 mele
-meleitem name
+demon sword
 mele
 meleitem name
 mele
-meleitem name
+demon sword
 mele
 meleitem name
 mele
-meleitem name
+demon sword
 mele
 meleitem name
 mele
-meleitem name
+demon sword
 mele

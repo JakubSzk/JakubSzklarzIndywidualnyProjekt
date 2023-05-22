@@ -268,10 +268,13 @@ class Item
 {
 public:
     virtual ~Item() = default;
-
+    virtual std::string get_type() = 0;
     virtual void animacja(int nr_klatki) = 0;
     virtual void load() = 0;
     virtual sf::Texture* tekstura_w_eq() = 0;
+    virtual sf::Texture* tekstura_w_postac() = 0;
+    virtual sf::Texture* tekstura_w_attack() = 0;
+    virtual void initiate_wear() = 0;
 };
 //Klasa dla broni mele
 class Mele :public Item
@@ -283,9 +286,10 @@ private:
     Staty staty;
     std::string name;
     bool wear = false;
+    std::string type = "bron";
 public:
     Mele(std::string name) : name(name) {};
-    
+    virtual std::string get_type() override { return type; }
     virtual void animacja(int nr_klatki) override
     {
         std::cout << "a";
@@ -307,7 +311,15 @@ public:
         plik.close();
         tekstura_eq.loadFromFile(("resources/itemy/" + name + "/" + name + " eq.png"));
     }
+    virtual void initiate_wear() override
+    {
+        if (!wear)
+            tekstura_postac.loadFromFile(("resources/itemy/" + name + "/" + name + " hold.png"));
+        wear = true;
+    }
     virtual sf::Texture* tekstura_w_eq() override { return &tekstura_eq; }
+    virtual sf::Texture* tekstura_w_postac() override { return &tekstura_postac; }
+    virtual sf::Texture* tekstura_w_attack() override { return &tekstura_attack; }
 };
 /*
 //Klasa dla przedmiotow broni zasiegowej
@@ -400,18 +412,83 @@ public:
     bool inside = false;
     ~Gracz()
     {
-        for (int i = itemki_w_eq.size(); i <= 0 ; i--)
+        for (int i = itemki_w_eq.size()-1; i >= 0 ; i--)
         {
             delete itemki_w_eq[i];
+        }
+        for (int i = 9; i >= 0; i--)
+        {
+            if (zalozone[i])
+                delete zalozone[i];
         }
     }
     int ilosc_itemkow_eq() { return itemki_w_eq.size(); }
     //Staty stats;
     std::vector<Item*> itemki_w_eq;
+    int nr_klikniety = 0;
+    int wear_int(int nr_na_ktory);
+    void wear(int nr_na_ktory);
+    // 0 - chelm
+    // 1 - napiersnik
+    // 2 - spodnie
+    // 3 - buty
+    // 4 - bron
+    // 5 - supp
+    // 6 - plecak1
+    // 7 - plecak2
+    // 8 - plecak3
+    // 9 - plecak4
+    Item* zalozone[10] = { nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr };
 private:
-    std::vector<std::string> wczytane;
     
+
+    std::vector<std::string> wczytane;
+
 };
+
+void Gracz::wear(int nr_na_ktory)
+{
+    if (zalozone[nr_na_ktory])
+        itemki_w_eq.push_back(zalozone[nr_na_ktory]);
+    zalozone[nr_na_ktory] = itemki_w_eq[nr_klikniety - 1];
+    //itemki_w_eq.erase(itemki_w_eq.begin() + nr_klikniety - 1);
+    itemki_w_eq[nr_klikniety - 1] = itemki_w_eq.back();
+    itemki_w_eq.erase(itemki_w_eq.end() - 1);
+}
+
+int Gracz::wear_int(int nr_na_ktory)
+{
+    switch (nr_na_ktory)
+    {
+    case 0:
+        if (itemki_w_eq[nr_klikniety - 1]->get_type() != "chelm")
+            return -1;
+        break;
+    case 1:
+        if (itemki_w_eq[nr_klikniety - 1]->get_type() != "napiersnik")
+            return -1;
+        break;
+    case 2:
+        if (itemki_w_eq[nr_klikniety - 1]->get_type() != "spodnie")
+            return -1;
+        break;
+    case 3:
+        if (itemki_w_eq[nr_klikniety - 1]->get_type() != "buty")
+            return -1;
+        break;
+    case 4:
+        if (itemki_w_eq[nr_klikniety - 1]->get_type() != "bron")
+            return -1;
+        break;
+    case 5:
+        if (itemki_w_eq[nr_klikniety - 1]->get_type() != "support")
+            return -1;
+        break;
+    }
+    
+    return nr_na_ktory;
+}
+
 
 void Gracz::load()
 {
@@ -483,7 +560,7 @@ int main()
     int state = 0;
     bool change_status = true; //zmienne zarzadzajace wczytywaniem zasobow
     bool odswmap = false;
-
+    bool item_clicked = false;
     sf::Vector2i pos;
     while (window.isOpen())
     {
@@ -588,11 +665,41 @@ int main()
                 obj.back().setPosition(sf::Vector2f(1920, 1080));
                 obj.back().setColor(sf::Color::Green);
 
+                for (int i = 0; i < 16; i++)
+                    obj.push_back(sf::Sprite());
+                obj[2].setPosition(sf::Vector2f(1622, 40));
+                obj[3].setPosition(sf::Vector2f(1621, 292));
+                obj[4].setPosition(sf::Vector2f(1612, 565));
+                obj[5].setPosition(sf::Vector2f(1609, 893));
+                obj[6].setPosition(sf::Vector2f(1775, 565));
+                obj[7].setPosition(sf::Vector2f(1435, 562)); //pozycje eq rozmieszczone w nierownych miejscach
+                obj[8].setPosition(sf::Vector2f(1468, 8));
+                obj[9].setPosition(sf::Vector2f(1759, 11));
+                obj[10].setPosition(sf::Vector2f(1468, 119));
+                obj[11].setPosition(sf::Vector2f(1757, 117));
+
+                obj[12].setPosition(sf::Vector2f(146, 0));
+                obj[13].setPosition(sf::Vector2f(27, 183));
+                obj[14].setPosition(sf::Vector2f(100, 488)); //pozycje eq na postaci
+                obj[15].setPosition(sf::Vector2f(64, 804));
+                obj[16].setPosition(sf::Vector2f(24, 194));
+                obj[17].setPosition(sf::Vector2f(322, 564));
+
                 for (int i = 0; i < gracz.ilosc_itemkow_eq(); i++)
                 {
                     obj.push_back(sf::Sprite());
                     obj.back().setTexture(*gracz.itemki_w_eq[i]->tekstura_w_eq());
                     obj.back().setPosition(pozycja_eq(i + 1));
+                }
+                for (int i = 0; i < 10; i++)
+                {
+                    if (gracz.zalozone[i])
+                        obj[2 + i].setTexture(*gracz.zalozone[i]->tekstura_w_eq());
+                }
+                for (int i = 0; i < 6; i++)
+                {
+                    if (gracz.zalozone[i])
+                        obj[12 + i].setTexture(*gracz.zalozone[i]->tekstura_w_postac());
                 }
             }
             else if (state == 3)
@@ -781,8 +888,64 @@ int main()
                     }
                     if (detekcja_nr_pola_w_ekwipunku(pos, gracz.ilosc_itemkow_eq()))
                     {
+                        item_clicked = true;
+                        gracz.nr_klikniety = detekcja_nr_pola_w_ekwipunku(pos, gracz.ilosc_itemkow_eq());
                         obj[1].setPosition(pozycja_eq(detekcja_nr_pola_w_ekwipunku(pos, gracz.ilosc_itemkow_eq())));
                     }
+                    if (item_clicked)
+                    {
+                        int hold = -1;
+                        item_clicked = false;
+                        if (pos.x >= 1622 && pos.y >= 40 && pos.x <= 1702 && pos.y <= 120) //chelm
+                            hold = gracz.wear_int(0);
+                        else if (pos.x >= 1621 && pos.y >= 292 && pos.x <= 1701 && pos.y <= 372) //napiersnik
+                            hold = gracz.wear_int(1);
+                        else if (pos.x >= 1612 && pos.y >= 565 && pos.x <= 1692 && pos.y <= 645) //spodnie
+                            hold = gracz.wear_int(2);
+                        else if (pos.x >= 1609 && pos.y >= 893 && pos.x <= 1689 && pos.y <= 973) //buty
+                            hold = gracz.wear_int(3);
+                        else if (pos.x >= 1775 && pos.y >= 565 && pos.x <= 1855 && pos.y <= 645) //bron
+                            hold = gracz.wear_int(4);
+                        else if (pos.x >= 1435 && pos.y >= 562 && pos.x <= 1515 && pos.y <= 642) //support
+                            hold = gracz.wear_int(5);
+                        else if (pos.x >= 1468 && pos.y >= 8 && pos.x <= 1548 && pos.y <= 88) //plecak1
+                            hold = gracz.wear_int(6);
+                        else if (pos.x >= 1759 && pos.y >= 11 && pos.x <= 1839 && pos.y <= 91) //plecak2
+                            hold = gracz.wear_int(7);
+                        else if (pos.x >= 1468 && pos.y >= 119 && pos.x <= 1548 && pos.y <= 199) //plecak3
+                            hold = gracz.wear_int(8);
+                        else if (pos.x >= 1757 && pos.y >= 117 && pos.x <= 1837 && pos.y <= 197) //plecak4
+                            hold = gracz.wear_int(9);
+                        else
+                        {
+                            item_clicked = true;
+                            continue;
+                        }
+                        obj[1].setPosition(sf::Vector2f(1920, 1080));
+                        //obj.erase(obj.begin() +( 11 + gracz.nr_klikniety));
+                        //if(12 + gracz.nr_klikniety != obj.size() - 1)
+                        if (hold != -1)
+                        {
+                            obj[18 + gracz.nr_klikniety - 1].setTexture(*obj[obj.size() - 1].getTexture()); //= obj[obj.size()-1];
+                            if (gracz.zalozone[hold])
+                                obj.back().setTexture(*gracz.zalozone[hold]->tekstura_w_eq());
+                            else
+                                obj.erase(obj.end() - 1);
+                            gracz.wear(hold);
+                            gracz.zalozone[hold]->initiate_wear();
+                            for (int i = 0; i < 10; i++)
+                            {
+                                if (gracz.zalozone[i])
+                                    obj[2 + i].setTexture(*gracz.zalozone[i]->tekstura_w_eq());
+                            }
+                            for (int i = 0; i < 6; i++)
+                            {
+                                if (gracz.zalozone[i])
+                                    obj[12 + i].setTexture(*gracz.zalozone[i]->tekstura_w_postac());
+                            }
+                        }
+                    }
+                    
                 }
                 else if (state == 3)
                 {
@@ -823,14 +986,21 @@ int main()
         //odswiezanie
 
         for (int i = 0; i < obj.size(); i++)
+        {
+            if (state == 2 && i >= 2 && i <= 11)
+            {
+                //if (!gracz.zalozone[i - 2])
+                    //continue;
+            }
             window.draw(obj[i]);
-        
+        }
         for (int i = 0; i < pola.size(); i++)
             window.draw(pola[i].pole);
         for (int i = 0; i < beta_obj.size(); i++)
             window.draw(beta_obj[i]);
         for (int i = 0; i < texts.size(); i++)
             window.draw(texts[i]);
+        
         window.display();
     }
     
