@@ -19,33 +19,34 @@ C:\Users\kubas\Documents\Jakub\Studia\semestr 3\Projekt c++\JakubSzklarzIndywidu
           [
               T=float
           ]
-C:\Users\kubas\Documents\Jakub\Studia\semestr 3\Projekt c++\JakubSzklarzIndywidualnyProjekt\Call of the tunnels\Call of the tunnels\Call of the tunnels.cpp(415,1): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\kubas\Documents\Jakub\Studia\semestr 3\Projekt c++\JakubSzklarzIndywidualnyProjekt\Call of the tunnels\Call of the tunnels\Call of the tunnels.cpp(425,28): warning C4267: 'return': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\kubas\Documents\Jakub\Studia\semestr 3\Projekt c++\JakubSzklarzIndywidualnyProjekt\Call of the tunnels\Call of the tunnels\Call of the tunnels.cpp(526,85): warning C4244: 'argument': conversion from 'int' to 'T', possible loss of data
+C:\Users\kubas\Documents\Jakub\Studia\semestr 3\Projekt c++\JakubSzklarzIndywidualnyProjekt\Call of the tunnels\Call of the tunnels\Call of the tunnels.cpp(459,1): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\kubas\Documents\Jakub\Studia\semestr 3\Projekt c++\JakubSzklarzIndywidualnyProjekt\Call of the tunnels\Call of the tunnels\Call of the tunnels.cpp(468,1): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\kubas\Documents\Jakub\Studia\semestr 3\Projekt c++\JakubSzklarzIndywidualnyProjekt\Call of the tunnels\Call of the tunnels\Call of the tunnels.cpp(473,28): warning C4267: 'return': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\kubas\Documents\Jakub\Studia\semestr 3\Projekt c++\JakubSzklarzIndywidualnyProjekt\Call of the tunnels\Call of the tunnels\Call of the tunnels.cpp(614,85): warning C4244: 'argument': conversion from 'int' to 'T', possible loss of data
           with
           [
               T=float
           ]
-C:\Users\kubas\Documents\Jakub\Studia\semestr 3\Projekt c++\JakubSzklarzIndywidualnyProjekt\Call of the tunnels\Call of the tunnels\Call of the tunnels.cpp(526,50): warning C4244: 'argument': conversion from 'int' to 'T', possible loss of data
+C:\Users\kubas\Documents\Jakub\Studia\semestr 3\Projekt c++\JakubSzklarzIndywidualnyProjekt\Call of the tunnels\Call of the tunnels\Call of the tunnels.cpp(614,50): warning C4244: 'argument': conversion from 'int' to 'T', possible loss of data
           with
           [
               T=float
           ]
-C:\Users\kubas\Documents\Jakub\Studia\semestr 3\Projekt c++\JakubSzklarzIndywidualnyProjekt\Call of the tunnels\Call of the tunnels\Call of the tunnels.cpp(527,50): warning C4244: 'argument': conversion from 'int' to 'T', possible loss of data
+C:\Users\kubas\Documents\Jakub\Studia\semestr 3\Projekt c++\JakubSzklarzIndywidualnyProjekt\Call of the tunnels\Call of the tunnels\Call of the tunnels.cpp(615,50): warning C4244: 'argument': conversion from 'int' to 'T', possible loss of data
           with
           [
               T=float
           ]
-C:\Users\kubas\Documents\Jakub\Studia\semestr 3\Projekt c++\JakubSzklarzIndywidualnyProjekt\Call of the tunnels\Call of the tunnels\Call of the tunnels.cpp(580,67): warning C4244: 'argument': conversion from 'int' to 'T', possible loss of data
+C:\Users\kubas\Documents\Jakub\Studia\semestr 3\Projekt c++\JakubSzklarzIndywidualnyProjekt\Call of the tunnels\Call of the tunnels\Call of the tunnels.cpp(673,67): warning C4244: 'argument': conversion from 'int' to 'T', possible loss of data
           with
           [
               T=float
           ]
-C:\Users\kubas\Documents\Jakub\Studia\semestr 3\Projekt c++\JakubSzklarzIndywidualnyProjekt\Call of the tunnels\Call of the tunnels\Call of the tunnels.cpp(585,64): warning C4244: 'argument': conversion from 'int' to 'T', possible loss of data
+C:\Users\kubas\Documents\Jakub\Studia\semestr 3\Projekt c++\JakubSzklarzIndywidualnyProjekt\Call of the tunnels\Call of the tunnels\Call of the tunnels.cpp(678,64): warning C4244: 'argument': conversion from 'int' to 'T', possible loss of data
           with
           [
               T=float
           ]
-C:\Users\kubas\Documents\Jakub\Studia\semestr 3\Projekt c++\JakubSzklarzIndywidualnyProjekt\Call of the tunnels\Call of the tunnels\Call of the tunnels.cpp(617,57): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\kubas\Documents\Jakub\Studia\semestr 3\Projekt c++\JakubSzklarzIndywidualnyProjekt\Call of the tunnels\Call of the tunnels\Call of the tunnels.cpp(626,57): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\kubas\Documents\Jakub\Studia\semestr 3\Projekt c++\JakubSzklarzIndywidualnyProjekt\Call of the tunnels\Call of the tunnels\Call of the tunnels.cpp(710,57): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\kubas\Documents\Jakub\Studia\semestr 3\Projekt c++\JakubSzklarzIndywidualnyProjekt\Call of the tunnels\Call of the tunnels\Call of the tunnels.cpp(719,57): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
   Call of the tunnels.vcxproj -> C:\Users\kubas\Documents\Jakub\Studia\semestr 3\Projekt c++\JakubSzklarzIndywidualnyProjekt\Call of the tunnels\x64\Debug\Call of the tunnels.exe

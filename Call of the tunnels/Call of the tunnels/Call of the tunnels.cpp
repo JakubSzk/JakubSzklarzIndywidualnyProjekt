@@ -381,6 +381,50 @@ public:
 };*/
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////(end item)
 
+class Hitbox
+{
+public:
+    virtual ~Hitbox() = default;
+    virtual bool hit(int x, int y) = 0;
+    virtual char get_type() = 0;
+};
+
+class Rect :public Hitbox
+{
+public:
+    Rect(int a, int b, int posx, int posy, char type) :a(a), b(b), posx(posx), posy(posy), type(type) {};
+    Rect() { a = 0, b = 0, posx = 0, posy = 0, type = 0; };
+    virtual bool hit(int x, int y) override
+    {
+        // std::cout << x << " > " << posx << " " << x << " < " << posx + a << " " << y << " > " << posy << " " << y << " < " << posy + b << "\n";
+        return (x > posx && x < posx + a && y > posy && y < posy + b) ? true : false;
+    }
+    virtual char get_type() override { return type; }
+private:
+    int a;
+    int b;
+    int posx;
+    int posy;
+    char type;
+};
+
+class Circle :public Hitbox
+{
+public:
+    Circle(int r, int posx, int posy, char type) :r(r), posx(posx), posy(posy), type(type) {};
+    Circle() { r = 0, posx = 0, posy = 0, type = 0; };
+    virtual bool hit(int x, int y) override
+    {
+        return (((x * x) - (2 * posx * x) + (posx * posx) + (y * y) - (2 * posy * y) + (posy * posy)) <= (r * r)) ? true : false;
+    }
+    virtual char get_type() override { return type; }
+private:
+    int r;
+    int posx;
+    int posy;
+    char type;
+};
+
 //funkcja wykrywajaca ktore pole w ekwiupunku zostalo klikniete
 //jesli nie trafi (zadne pole nie klikniete) zwroci 0, wiec mozna zastosowac if
 int detekcja_nr_pola_w_ekwipunku(sf::Vector2i pos, int ilosc_itemow)
@@ -421,6 +465,10 @@ public:
             if (zalozone[i])
                 delete zalozone[i];
         }
+        for (int i = hitboxy.size() - 1; i >= 0; i--)
+        {
+            delete hitboxy[i];
+        }
     }
     int ilosc_itemkow_eq() { return itemki_w_eq.size(); }
     //Staty stats;
@@ -439,9 +487,12 @@ public:
     // 8 - plecak3
     // 9 - plecak4
     Item* zalozone[10] = { nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr };
+    int posx = 0, posy = 0, nr = 0, movx = 0, movy = 0;
+    std::vector<Hitbox*> hitboxy;
+    std::string current_map = "mapa";
 private:
     
-
+    
     std::vector<std::string> wczytane;
 
 };
@@ -520,6 +571,43 @@ void Gracz::load()
 
 }
 
+
+
+void move(sf::Sprite* sprite, int* x, int* y, int* mx, int* my, std::vector<Hitbox*> hitboxy)
+{
+    if (*mx == 0 && *my == 0)
+        return;
+    for (int i = 0; i < hitboxy.size(); i++)
+    {
+        //std::cout << "tried\n";
+        if ((hitboxy[i]->hit(*x + (*mx / 2) + 945, *y + (*my / 2) + 495) || hitboxy[i]->hit(*x + (*mx / 2) + 955, *y + (*my / 2) + 505)))
+        {
+
+            if (hitboxy[i]->get_type() == 87)
+            {
+                *mx /= 2;
+                *my /= 2;
+                //std::cout << "true\n";
+                move(sprite, x, y, mx, my, hitboxy);
+                return;
+            }
+            if (hitboxy[i]->get_type() == 68)
+            {
+                *mx = 0;
+                *my = 0;
+                *x = 0;
+                *y = 0;
+                return;
+            }
+        }
+    }
+    *x += *mx / 2;
+    *mx /= 2;
+    *y += *my / 2;
+    *my /= 2;
+    sprite->setTextureRect(sf::IntRect(*x, *y, 1900, 1000));
+}
+
 sf::Vector2f pozycja_eq(int nr)
 {
     if (nr % 6)
@@ -540,6 +628,7 @@ int main()
     sf::Texture map_back;
     sf::Texture eq_back;
     sf::Texture itemback;
+    sf::Texture map;
     /////////////////////////////////////////////////////////////////////////////
     //pobiera z pliku
     pole_blok.loadFromFile("resources/poleblok.png");
@@ -549,10 +638,14 @@ int main()
     itemback.loadFromFile("resources/backgrounditem.png");
     /////////////////////////////////////////////////////////////////////////////
     sf::RenderWindow window(sf::VideoMode(1900, 1000), "Call Of The Tunnels"); //tworzy okno
-    window.setFramerateLimit(15); //limit klatek (bez tego komputer plonie)
+    window.setFramerateLimit(30); //limit klatek (bez tego komputer plonie)
     Gracz gracz;
     gracz.load();
-   
+    sf::CircleShape dot(5);
+    dot.setPosition(945, 495);
+    dot.setFillColor(sf::Color::Red);
+
+    //int posx = 0, posy = 0, nr = 0, movx = 0, movy = 0;
     std::vector<sf::RectangleShape> beta_obj;
     std::vector<sf::Text> texts; //vectory zawierajace wczytywane obiekty
     std::vector<sf::Sprite> obj;
@@ -702,7 +795,7 @@ int main()
                         obj[12 + i].setTexture(*gracz.zalozone[i]->tekstura_w_postac());
                 }
             }
-            else if (state == 3)
+            else if (state == 3) //mapa podst
             {
                 beta_obj.push_back(sf::RectangleShape(sf::Vector2f(760, 50)));
                 beta_obj[0].setPosition(sf::Vector2f(570, 875));
@@ -720,6 +813,48 @@ int main()
                 texts[1].setString("3");
                 texts[0].setPosition(sf::Vector2f(950, 885));
                 texts[1].setPosition(sf::Vector2f(990, 490));
+
+                obj.push_back(sf::Sprite());
+                map.loadFromFile(("resources/mapy/" + gracz.current_map + "/" + gracz.current_map + ".png").c_str());
+                obj[0].setTexture(map);
+                obj[0].setTextureRect(sf::IntRect(0, 0, 1900, 1000));
+                gracz.posx = 0, gracz.posy = 0, gracz.nr = 0, gracz.movx = 0, gracz.movy = 0;
+
+                std::fstream plik;
+                std::vector<std::string> podzielone;
+                std::string holder, linia;
+                plik.open(("resources/mapy/"+gracz.current_map+"/"+gracz.current_map+".txt").c_str(), std::ios::in);
+                while (std::getline(plik, linia))
+                {
+                    for (int i = 0; i <= linia.size(); i++)
+                    {
+                        if (i == linia.size() || linia[i] == 32)
+                        {
+                            podzielone.push_back(holder);
+                            //std::cout << holder << "\n";
+                            holder = "";
+                            continue;
+                        }
+                        holder += linia[i];
+                    }
+                }
+                int iterator = 0;
+
+                while (iterator < podzielone.size())
+                {
+                    if (podzielone[iterator] == "R")
+                    {
+                        gracz.hitboxy.push_back(new Rect(std::stoi(podzielone[iterator + 1]), std::stoi(podzielone[iterator + 2]), std::stoi(podzielone[iterator + 3]), std::stoi(podzielone[iterator + 4]), podzielone[iterator + 5][0]));
+                        iterator += 6;
+                        continue;
+                    }
+                    if (podzielone[iterator] == "C")
+                    {
+                        gracz.hitboxy.push_back(new Circle(std::stoi(podzielone[iterator + 1]), std::stoi(podzielone[iterator + 2]), std::stoi(podzielone[iterator + 3]), podzielone[iterator + 4][0]));
+                        iterator += 5;
+                        continue;
+                    }
+                }
             }
             else if (state == 4)
             {
@@ -784,6 +919,42 @@ int main()
 
             }
             change_status = false;
+        }
+        if (state == 3 && (gracz.movx || gracz.movy))
+        {
+            move(&obj[0], &gracz.posx, &gracz.posy, &gracz.movx, &gracz.movy, gracz.hitboxy);
+        }
+        if (state == 3)
+        {
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up))
+            {
+                if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift))
+                    gracz.movy -= 15;
+                else
+                    gracz.movy -= 5;
+            }
+
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down))
+            {
+                if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift))
+                    gracz.movy += 15;
+                else
+                    gracz.movy += 5;
+            }
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
+            {
+                if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift))
+                    gracz.movx += 15;
+                else
+                    gracz.movx += 5;
+            }
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
+            {
+                if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift))
+                    gracz.movx -= 15;
+                else
+                    gracz.movx -= 5;
+            }
         }
         sf::Event event;
         while (window.pollEvent(event))
@@ -1006,7 +1177,8 @@ int main()
             window.draw(beta_obj[i]);
         for (int i = 0; i < texts.size(); i++)
             window.draw(texts[i]);
-        
+        if (state == 3)
+            window.draw(dot);
         window.display();
     }
     
