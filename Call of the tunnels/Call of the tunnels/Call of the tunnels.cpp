@@ -269,12 +269,14 @@ class Item
 public:
     virtual ~Item() = default;
     virtual std::string get_type() = 0;
-    virtual void animacja(int nr_klatki) = 0;
+    virtual bool animacja(sf::Sprite* x, int y, sf::Vector2f gdzie) = 0;
     virtual void load() = 0;
     virtual sf::Texture* tekstura_w_eq() = 0;
     virtual sf::Texture* tekstura_w_postac() = 0;
     virtual sf::Texture* tekstura_w_attack() = 0;
     virtual void initiate_wear() = 0;
+    virtual void initiate_attack() = 0;
+    virtual Staty stats() = 0;
 };
 //Klasa dla broni mele
 class Mele :public Item
@@ -290,10 +292,7 @@ private:
 public:
     Mele(std::string name) : name(name) {};
     virtual std::string get_type() override { return type; }
-    virtual void animacja(int nr_klatki) override
-    {
-        std::cout << "a";
-    }
+
     //funkcja do inicjacji itemu nie ma potrzeby wywolywac jesli tekstury nie beda potrzebne
     virtual void load() override
     {
@@ -317,9 +316,53 @@ public:
             tekstura_postac.loadFromFile(("resources/itemy/" + name + "/" + name + " hold.png"));
         wear = true;
     }
+    virtual void initiate_attack() override
+    {
+        tekstura_attack.loadFromFile(("resources/itemy/" + name + "/" + name + " attack.png"));
+    }
     virtual sf::Texture* tekstura_w_eq() override { return &tekstura_eq; }
     virtual sf::Texture* tekstura_w_postac() override { return &tekstura_postac; }
     virtual sf::Texture* tekstura_w_attack() override { return &tekstura_attack; }
+    virtual Staty stats() override { return staty; }
+    virtual bool animacja(sf::Sprite* x, int y, sf::Vector2f gdzie) override
+    {
+        switch (y)
+        {
+        case 1:
+            x->setRotation(0);
+            x->setPosition(gdzie);
+            break;
+        case 3:
+            x->setRotation(-10);
+            x->setPosition(gdzie.x - 120, gdzie.y);
+            break;
+        case 5:
+            x->setRotation(5);
+            x->setPosition(gdzie.x + 50, gdzie.y - 60);
+            break;
+        case 7:
+            x->setRotation(10);
+            x->setPosition(gdzie.x + 150, gdzie.y - 60);
+            break;
+        case 9:
+            x->setRotation(20);
+            x->setPosition(gdzie.x + 300, gdzie.y - 40);
+            break;
+        case 11:
+            x->setRotation(30);
+            x->setPosition(gdzie.x + 450, gdzie.y + 50);
+            break;
+        case 13:
+            x->setRotation(45);
+            x->setPosition(gdzie.x + 600, gdzie.y + 150);
+        case 15:
+            x->setRotation(0);
+            x->setPosition(1920, 1080);
+            return false;
+            break;
+        }
+        return true;
+    }
 };
 /*
 //Klasa dla przedmiotow broni zasiegowej
@@ -380,6 +423,58 @@ private:
 public:
 };*/
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////(end item)
+class Przeciwnik
+{
+public:
+    Przeciwnik(std::string name) 
+    {
+        tekstura.loadFromFile(("resources/moby/" + name + "/" + name + ".png").c_str());
+        std::fstream plik;
+        plik.open(("resources/moby/" + name + "/" + name + ".txt").c_str(), std::ios::in);
+        int hold[10], i = 0;
+        while (std::getline(plik, name))
+        {
+            hold[i] = std::stoi(name);
+            i += 1;
+        }
+        plik.close();
+        stats = Staty(name, hold[0], hold[1], hold[2], hold[3], hold[4], hold[5], hold[6], hold[7], hold[8], hold[9]);
+        loaded = true;
+    };
+    Przeciwnik() {};
+    bool loaded = false;
+    Staty stats;
+    sf::Texture tekstura;
+    bool animacja(sf::Sprite* x, int y)
+    {
+        switch (y)
+        {
+        case 1:
+            x->setScale(1.1f, 1.1f);
+            break;
+        case 2:
+            x->setScale(1.15f, 1.15f);
+            break;
+        case 3:
+            x->setScale(1.2f, 1.2f);
+            break;
+        case 4:
+            x->setScale(1.25f, 1.25f);
+            break;
+        case 5:
+            x->setScale(1.30f, 1.30f);
+            break;
+        case 6:
+            x->setScale(1.0f, 1.0f);
+            return false;
+            break;
+        }
+        return true;
+    }
+private:
+    //none
+};
+
 
 class Hitbox
 {
@@ -471,7 +566,7 @@ public:
         }
     }
     int ilosc_itemkow_eq() { return itemki_w_eq.size(); }
-    //Staty stats;
+    Staty stats = Staty("gracz", 10, 10, 10, 10, 10, 10, 10, 10, 10, 10);  
     std::vector<Item*> itemki_w_eq;
     int nr_klikniety = 0;
     int wear_int(int nr_na_ktory);
@@ -490,6 +585,9 @@ public:
     int posx = 0, posy = 0, nr = 0, movx = 0, movy = 0;
     std::vector<Hitbox*> hitboxy;
     std::string current_map = "mapa";
+    std::string background = "tlo";
+    Przeciwnik przeciwnicy[3];
+    int wybrany_potwor = 0;
 private:
     
     
@@ -500,11 +598,15 @@ private:
 void Gracz::wear(int nr_na_ktory)
 {
     if (zalozone[nr_na_ktory])
+    {
+        stats -= zalozone[nr_na_ktory]->stats();
         itemki_w_eq.push_back(zalozone[nr_na_ktory]);
+    }
     zalozone[nr_na_ktory] = itemki_w_eq[nr_klikniety - 1];
     //itemki_w_eq.erase(itemki_w_eq.begin() + nr_klikniety - 1);
     itemki_w_eq[nr_klikniety - 1] = itemki_w_eq.back();
     itemki_w_eq.erase(itemki_w_eq.end() - 1);
+    stats += zalozone[nr_na_ktory]->stats();
 }
 
 int Gracz::wear_int(int nr_na_ktory)
@@ -568,6 +670,7 @@ void Gracz::load()
             itemki_w_eq.back()->load();
         }
     }
+    //current_map_texture.loadFromFile()
 
 }
 
@@ -629,11 +732,14 @@ int main()
     sf::Texture eq_back;
     sf::Texture itemback;
     sf::Texture map;
+    sf::Texture tlo;
+    sf::Texture interfejs_walka;
     /////////////////////////////////////////////////////////////////////////////
     //pobiera z pliku
     pole_blok.loadFromFile("resources/poleblok.png");
     polebeta.loadFromFile("resources/betapolee.png");
     map_back.loadFromFile("resources/mapa.png");
+    interfejs_walka.loadFromFile("resources/do walki.png");
     eq_back.loadFromFile("resources/ekwipunek.png");
     itemback.loadFromFile("resources/backgrounditem.png");
     /////////////////////////////////////////////////////////////////////////////
@@ -644,16 +750,17 @@ int main()
     sf::CircleShape dot(5);
     dot.setPosition(945, 495);
     dot.setFillColor(sf::Color::Red);
-
+    gracz.przeciwnicy[0] = Przeciwnik("przeciwnik1");
     //int posx = 0, posy = 0, nr = 0, movx = 0, movy = 0;
     std::vector<sf::RectangleShape> beta_obj;
-    std::vector<sf::Text> texts; //vectory zawierajace wczytywane obiekty
+    std::vector<sf::Text> texts; //vectory zawierajace wczytywane obiekty 
     std::vector<sf::Sprite> obj;
     std::vector<Pole> pola;
-    int state = 0;
+    int state = 0, klatki = 1;
     bool change_status = true; //zmienne zarzadzajace wczytywaniem zasobow
     bool odswmap = false;
     bool item_clicked = false;
+    bool animation_attack = false, animation_potwor = false;
     sf::Vector2i pos;
     while (window.isOpen())
     {
@@ -856,7 +963,7 @@ int main()
                     }
                 }
             }
-            else if (state == 4)
+            else if (state == 4) //walka
             {
                 beta_obj.push_back(sf::RectangleShape(sf::Vector2f(760, 50)));
                 beta_obj[0].setPosition(sf::Vector2f(570, 875));
@@ -874,6 +981,50 @@ int main()
                 texts[1].setString("4");
                 texts[0].setPosition(sf::Vector2f(950, 885));
                 texts[1].setPosition(sf::Vector2f(990, 490));
+
+
+                for (int i = 0; i < 18; i++)
+                    obj.push_back(sf::Sprite());
+                tlo.loadFromFile(("resources/back/" + gracz.background + ".png").c_str());
+                obj[0].setTexture(tlo);
+                obj[1].setTexture(interfejs_walka);
+                obj[2].setPosition(sf::Vector2f(314, 400));
+                obj[3].setPosition(sf::Vector2f(255, 492));
+                obj[4].setPosition(sf::Vector2f(291, 644));
+                obj[5].setPosition(sf::Vector2f(273, 802));
+                obj[6].setPosition(sf::Vector2f(253, 497));
+                obj[7].setPosition(sf::Vector2f(402, 682));
+                for (int i = 0; i < 6; i++)
+                {
+                    if (gracz.zalozone[i])
+                    {
+                        obj[2 + i].setTexture(*gracz.zalozone[i]->tekstura_w_postac());
+                        obj[2 + i].setScale(0.5f, 0.5f);
+                    }
+                }
+                for (int i = 0; i < 5; i++)
+                {
+                    obj[8 + i].setPosition(sf::Vector2f(280 + (i * 90), 910));
+                    if (i != 0 && gracz.zalozone[5 + i])
+                        obj[8 + i].setTexture(*gracz.zalozone[5 + i]->tekstura_w_eq());
+                }
+                if(gracz.zalozone[4])
+                    obj[8].setTexture(*gracz.zalozone[4]->tekstura_w_eq());
+                obj[13].setPosition(sf::Vector2f(837, 192));
+                obj[14].setPosition(sf::Vector2f(1151, 348));
+                obj[15].setPosition(sf::Vector2f(1473, 192));
+                if (gracz.przeciwnicy[0].loaded)
+                    obj[13].setTexture(gracz.przeciwnicy[0].tekstura);
+                if (gracz.przeciwnicy[1].loaded)
+                    obj[14].setTexture(gracz.przeciwnicy[1].tekstura);
+                if (gracz.przeciwnicy[2].loaded)
+                    obj[15].setTexture(gracz.przeciwnicy[2].tekstura);
+                if (gracz.zalozone[4])
+                {
+                    gracz.zalozone[4]->initiate_attack();
+                    obj[16].setTexture(*gracz.zalozone[4]->tekstura_w_attack());
+                    obj[16].setPosition(sf::Vector2f(1920, 1080));
+                }
 
             }
             else if (state == 5)
@@ -955,6 +1106,28 @@ int main()
                 else
                     gracz.movx -= 5;
             }
+        }
+        if (animation_attack && gracz.zalozone[4])
+        {
+            if(gracz.wybrany_potwor == 0)
+                animation_attack = gracz.zalozone[4]->animacja(&obj[16], klatki, sf::Vector2f(450, -100));
+            else if (gracz.wybrany_potwor == 1)
+                animation_attack = gracz.zalozone[4]->animacja(&obj[16], klatki, sf::Vector2f(764, 56));
+            else if (gracz.wybrany_potwor == 2)
+                animation_attack = gracz.zalozone[4]->animacja(&obj[16], klatki, sf::Vector2f(1086, -100));
+            klatki = (klatki < 30 && animation_attack) ? (klatki + 1) : 1;
+        }
+        if (animation_potwor && gracz.przeciwnicy[gracz.wybrany_potwor].loaded)
+        {
+            animation_potwor = gracz.przeciwnicy[gracz.wybrany_potwor].animacja(&obj[13 + gracz.wybrany_potwor], klatki);
+            klatki = (klatki < 30 && animation_potwor) ? (klatki + 1) : 1;
+        }
+        if (gracz.przeciwnicy[gracz.wybrany_potwor].stats.hp <= 0 && !animation_attack && !animation_potwor)
+        {
+            if(gracz.przeciwnicy[gracz.wybrany_potwor].loaded)
+                obj[13 + gracz.wybrany_potwor].setPosition(1920, 1080);
+            gracz.przeciwnicy[gracz.wybrany_potwor] = Przeciwnik();
+            change_status = true;
         }
         sf::Event event;
         while (window.pollEvent(event))
@@ -1132,13 +1305,64 @@ int main()
                         state = 0;
                     }
                 }
-                else if (state == 4)
+                else if (state == 4 && !animation_attack && !animation_potwor)
                 {
-                    if (pos.x > 570 && pos.x < 1330 && pos.y > 875 && pos.y < 925) //6
+                    if (pos.x > 837 && pos.x < 1271 && pos.y > 192 && pos.y < 765)
+                    {
+                        if (gracz.przeciwnicy[0].loaded)
+                            gracz.wybrany_potwor = 0;
+                    }
+                    else if (pos.x > 1151 && pos.x < 1585 && pos.y > 348 && pos.y < 921)
+                    {
+                        if (gracz.przeciwnicy[1].loaded)
+                            gracz.wybrany_potwor = 1;
+                    }
+                    else if (pos.x > 1473 && pos.x < 1900 && pos.y > 192 && pos.y < 765)
+                    {
+                        if (gracz.przeciwnicy[2].loaded)
+                            gracz.wybrany_potwor = 2;
+                    }
+                    else if (pos.x > 570 && pos.x < 1330 && pos.y > 875 && pos.y < 925) //6
                     {
                         change_status = true;
                         state = 0;
                     }
+                    else if (pos.x > 10 && pos.x < 90 && pos.y > 910 && pos.y < 990)
+                    {
+                        change_status = true;
+                        state = 0;
+                    }
+                    else if (pos.x > 100 && pos.x < 180 && pos.y > 910 && pos.y < 990)
+                    {
+                        //ruch
+                    }
+                    else if (pos.x > 190 && pos.x < 270 && pos.y > 910 && pos.y < 990)
+                    {
+                        //pass
+                    }
+                    else if (pos.x > 280 && pos.x < 360 && pos.y > 910 && pos.y < 990)
+                    {
+                        if (gracz.zalozone[4])
+                            animation_attack = true;
+                        gracz.przeciwnicy[gracz.wybrany_potwor].stats.hp -= gracz.stats.hp;
+                    }
+                    else if (pos.x > 370 && pos.x < 450 && pos.y > 910 && pos.y < 990)
+                    {
+                        //supp1
+                    }
+                    else if (pos.x > 460 && pos.x < 540 && pos.y > 910 && pos.y < 990)
+                    {
+                        //supp2
+                    }
+                    else if (pos.x > 550 && pos.x < 630 && pos.y > 910 && pos.y < 990)
+                    {
+                        //supp3
+                    }
+                    else if (pos.x > 640 && pos.x < 720 && pos.y > 910 && pos.y < 990)
+                    {
+                        //supp4
+                    }
+                    
                 }
                 else if (state == 5)
                 {
@@ -1164,11 +1388,11 @@ int main()
 
         for (int i = 0; i < obj.size(); i++)
         {
-            if (state == 2 && i >= 2 && i <= 11)
-            {
+            //if (state == 2 && i >= 2 && i <= 11)
+            //{
                 //if (!gracz.zalozone[i - 2])
                     //continue;
-            }
+            //}
             window.draw(obj[i]);
         }
         for (int i = 0; i < pola.size(); i++)
