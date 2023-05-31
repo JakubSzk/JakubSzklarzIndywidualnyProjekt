@@ -751,6 +751,7 @@ int main()
     dot.setPosition(945, 495);
     dot.setFillColor(sf::Color::Red);
     gracz.przeciwnicy[0] = Przeciwnik("przeciwnik1");
+    gracz.przeciwnicy[1] = Przeciwnik("przeciwnik2");
     //int posx = 0, posy = 0, nr = 0, movx = 0, movy = 0;
     std::vector<sf::RectangleShape> beta_obj;
     std::vector<sf::Text> texts; //vectory zawierajace wczytywane obiekty 
@@ -794,17 +795,13 @@ int main()
                 beta_obj[0].setFillColor(sf::Color::Blue);
                 texts.push_back(sf::Text());
                 texts.push_back(sf::Text());
-                for (int i = 0; i < 2; i++)
-                {
-                    texts[i].setCharacterSize(30);
-                    texts[i].setFont(font);
-                }
+ 
+                    texts[0].setCharacterSize(30);
+                    texts[0].setFont(font);
+                
                 texts[0].setFillColor(sf::Color::Black);
-                texts[1].setFillColor(sf::Color::White);
                 texts[0].setString("menu");
-                texts[1].setString("1");
                 texts[0].setPosition(sf::Vector2f(950, 885));
-                texts[1].setPosition(sf::Vector2f(990, 490));
                 if (!(pola.size() != 0))
                 {
                     int xowe = 380, yowe = 140;
@@ -844,18 +841,13 @@ int main()
                 beta_obj[0].setPosition(sf::Vector2f(570, 875));
                 beta_obj[0].setFillColor(sf::Color::Blue);
                 texts.push_back(sf::Text());
-                texts.push_back(sf::Text());
-                for (int i = 0; i < 2; i++)
-                {
-                    texts[i].setCharacterSize(30);
-                    texts[i].setFont(font);
-                }
+
+                    texts[0].setCharacterSize(30);
+                    texts[0].setFont(font);
+                
                 texts[0].setFillColor(sf::Color::Black);
-                texts[1].setFillColor(sf::Color::White);
                 texts[0].setString("menu");
-                texts[1].setString("2");
                 texts[0].setPosition(sf::Vector2f(950, 885));
-                texts[1].setPosition(sf::Vector2f(990, 490));
                 obj.push_back(sf::Sprite());
                 obj.back().setTexture(eq_back);
                 obj.back().setPosition(sf::Vector2f(0, 0));
@@ -908,18 +900,13 @@ int main()
                 beta_obj[0].setPosition(sf::Vector2f(570, 875));
                 beta_obj[0].setFillColor(sf::Color::Blue);
                 texts.push_back(sf::Text());
-                texts.push_back(sf::Text());
-                for (int i = 0; i < 2; i++)
-                {
-                    texts[i].setCharacterSize(30);
-                    texts[i].setFont(font);
-                }
+
+                    texts[0].setCharacterSize(30);
+                    texts[0].setFont(font);
+                
                 texts[0].setFillColor(sf::Color::Black);
-                texts[1].setFillColor(sf::Color::White);
                 texts[0].setString("menu");
-                texts[1].setString("3");
                 texts[0].setPosition(sf::Vector2f(950, 885));
-                texts[1].setPosition(sf::Vector2f(990, 490));
 
                 obj.push_back(sf::Sprite());
                 map.loadFromFile(("resources/mapy/" + gracz.current_map + "/" + gracz.current_map + ".png").c_str());
@@ -969,18 +956,13 @@ int main()
                 beta_obj[0].setPosition(sf::Vector2f(570, 875));
                 beta_obj[0].setFillColor(sf::Color::Blue);
                 texts.push_back(sf::Text());
-                texts.push_back(sf::Text());
-                for (int i = 0; i < 2; i++)
-                {
-                    texts[i].setCharacterSize(30);
-                    texts[i].setFont(font);
-                }
+
+                    texts[0].setCharacterSize(30);
+                    texts[0].setFont(font);
+                
                 texts[0].setFillColor(sf::Color::Black);
-                texts[1].setFillColor(sf::Color::White);
                 texts[0].setString("menu");
-                texts[1].setString("4");
                 texts[0].setPosition(sf::Vector2f(950, 885));
-                texts[1].setPosition(sf::Vector2f(990, 490));
 
 
                 for (int i = 0; i < 18; i++)
@@ -1122,7 +1104,7 @@ int main()
             animation_potwor = gracz.przeciwnicy[gracz.wybrany_potwor].animacja(&obj[13 + gracz.wybrany_potwor], klatki);
             klatki = (klatki < 30 && animation_potwor) ? (klatki + 1) : 1;
         }
-        if (gracz.przeciwnicy[gracz.wybrany_potwor].stats.hp <= 0 && !animation_attack && !animation_potwor)
+        if (gracz.przeciwnicy[gracz.wybrany_potwor].stats.hp <= 0 && !animation_attack && !animation_potwor && state == 4)
         {
             if(gracz.przeciwnicy[gracz.wybrany_potwor].loaded)
                 obj[13 + gracz.wybrany_potwor].setPosition(1920, 1080);
